@@ -8,12 +8,18 @@ function createPopup() {
   // Create shadow root
   const shadow = container.attachShadow({ mode: 'open' });
   
+  // Create overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  shadow.appendChild(overlay);
+  
   // Create popup content
   const popup = document.createElement('div');
   popup.id = 'browse-with-ai-popup';
   popup.innerHTML = `
     <div class="browse-with-ai-container">
       <div class="browse-with-ai-header">
+        <div class="drag-handle" title="Click and hold to drag">⋮⋮</div>
         <h3>Ask about selected text</h3>
         <button class="close-button" aria-label="Close">&times;</button>
       </div>
@@ -48,16 +54,35 @@ function createPopup() {
       left: 0;
       width: 100%;
       height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.5);
       z-index: 2147483647;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
     }
 
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1;
+    }
+
     /* Light theme (default) */
     #browse-with-ai-popup {
+      position: fixed;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+      max-width: 500px;
+      width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-sizing: border-box;
+      transition: none;
+      z-index: 2;
       --bg-primary: #ffffff;
       --bg-secondary: #f8f9fa;
       --text-primary: #1a1a1a;
@@ -74,18 +99,6 @@ function createPopup() {
       --disabled-bg: #cccccc;
       --spinner-bg: #f3f3f3;
       --hover-bg: #f0f0f0;
-
-      background: var(--bg-primary);
-      color: var(--text-primary);
-      padding: 24px;
-      border-radius: 12px;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-      max-width: 500px;
-      width: 90%;
-      max-height: 85vh;
-      overflow-y: auto;
-      position: relative;
-      box-sizing: border-box;
     }
 
     /* Dark theme */
@@ -131,6 +144,37 @@ function createPopup() {
       align-items: center;
       margin-bottom: 4px;
       width: 100%;
+      user-select: none;
+      padding: 12px 16px;
+      background: var(--bg-secondary);
+      border-radius: 8px 8px 0 0;
+      position: sticky;
+      top: -24px;
+      margin: -24px -24px 4px -24px;
+      width: calc(100% + 48px);
+      z-index: 1;
+    }
+
+    .drag-handle {
+      cursor: grab;
+      padding: 4px 8px;
+      margin: -4px 0;
+      border-radius: 4px;
+      color: var(--text-muted);
+      font-size: 16px;
+      letter-spacing: -1px;
+      transition: all 0.2s;
+    }
+
+    .drag-handle:hover {
+      background: var(--hover-bg);
+      color: var(--text-primary);
+    }
+
+    .drag-handle.dragging {
+      cursor: grabbing;
+      background: var(--hover-bg);
+      color: var(--text-primary);
     }
 
     .browse-with-ai-header h3 {
@@ -138,6 +182,8 @@ function createPopup() {
       color: var(--text-primary);
       font-size: 18px;
       font-weight: 600;
+      flex-grow: 1;
+      margin-left: 12px;
     }
 
     .close-button {
@@ -327,6 +373,120 @@ function createPopup() {
   `;
   shadow.appendChild(style);
 
+  // Initialize dragging functionality
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+  let xOffset = 0;
+  let yOffset = 0;
+
+  // Load saved position
+  browser.storage.local.get(['popupX', 'popupY']).then(result => {
+    if (result.popupX !== undefined && result.popupY !== undefined) {
+      xOffset = result.popupX;
+      yOffset = result.popupY;
+      setTranslate(xOffset, yOffset, popup);
+    } else {
+      // Center the popup if no position is saved
+      xOffset = 0;
+      yOffset = 0;
+      setTranslate(xOffset, yOffset, popup);
+    }
+  });
+
+  const dragHandle = popup.querySelector('.drag-handle');
+
+  function dragStart(e) {
+    // Only start dragging if it's the drag handle
+    if (!e.target.classList.contains('drag-handle')) return;
+
+    if (e.type === "touchstart") {
+      initialX = e.touches[0].clientX - xOffset;
+      initialY = e.touches[0].clientY - yOffset;
+    } else {
+      initialX = e.clientX - xOffset;
+      initialY = e.clientY - yOffset;
+    }
+
+    isDragging = true;
+    dragHandle.classList.add('dragging');
+    popup.style.willChange = 'transform';
+    popup.style.transition = 'none';
+
+    // Add document-level event listeners
+    if (e.type !== "touchstart") {
+      document.addEventListener("mousemove", drag);
+      document.addEventListener("mouseup", dragEnd);
+    }
+  }
+
+  function dragEnd(e) {
+    if (!isDragging) return;
+    
+    isDragging = false;
+    dragHandle.classList.remove('dragging');
+    popup.style.willChange = 'auto';
+    
+    // Save the final position
+    browser.storage.local.set({
+      popupX: xOffset,
+      popupY: yOffset
+    });
+
+    // Remove document-level event listeners
+    document.removeEventListener("mousemove", drag);
+    document.removeEventListener("mouseup", dragEnd);
+  }
+
+  function drag(e) {
+    if (!isDragging) return;
+
+    e.preventDefault();
+    
+    if (e.type === "touchmove") {
+      currentX = e.touches[0].clientX - initialX;
+      currentY = e.touches[0].clientY - initialY;
+    } else {
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+    }
+
+    xOffset = currentX;
+    yOffset = currentY;
+
+    requestAnimationFrame(() => {
+      setTranslate(currentX, currentY, popup);
+    });
+  }
+
+  function setTranslate(xPos, yPos, el) {
+    // Keep the popup within the viewport
+    const rect = el.getBoundingClientRect();
+    const maxX = window.innerWidth - rect.width;
+    const maxY = window.innerHeight - rect.height;
+
+    xPos = Math.min(Math.max(0, xPos), maxX);
+    yPos = Math.min(Math.max(0, yPos), maxY);
+
+    // Remove the centering transform and just use translate3d
+    el.style.left = '0';
+    el.style.top = '0';
+    el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+  }
+
+  // Add event listeners for drag handle
+  dragHandle.addEventListener("mousedown", dragStart);
+  dragHandle.addEventListener("touchstart", dragStart, { passive: true });
+  dragHandle.addEventListener("touchend", dragEnd);
+  dragHandle.addEventListener("touchmove", drag, { passive: false });
+
+  // Handle click outside popup
+  overlay.addEventListener('click', () => {
+    container.remove();
+  });
+
   return {
     container,
     popup: shadow.querySelector('#browse-with-ai-popup')
@@ -351,20 +511,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Handle close button
     closeButton.addEventListener('click', () => {
       container.remove();
-    });
-
-    // Handle click outside popup
-    container.addEventListener('click', (e) => {
-      // Only close if clicking the overlay background (the container itself)
-      // and not any of its children
-      if (e.target === container) {
-        container.remove();
-      }
-    });
-
-    // Prevent clicks inside the popup from bubbling up
-    popup.addEventListener('click', (e) => {
-      e.stopPropagation();
     });
 
     // Handle ask button
