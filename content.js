@@ -15,20 +15,24 @@ function createPopup() {
     <div class="browse-with-ai-container">
       <div class="browse-with-ai-header">
         <h3>Ask about selected text</h3>
-        <button class="close-button">&times;</button>
+        <button class="close-button" aria-label="Close">&times;</button>
       </div>
       <div class="browse-with-ai-content">
         <div class="selected-text-preview"></div>
-        <div class="form-group">
-          <label>
-            <input type="checkbox" id="includeFullPage"> Include full page context
+        <div class="form-group checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="includeFullPage">
+            <span class="checkbox-text">Include full page context</span>
           </label>
         </div>
         <div class="form-group">
           <textarea id="question" placeholder="Ask a question about the selected text..."></textarea>
         </div>
-        <button id="askButton">Ask</button>
-        <div id="loading" class="loading hidden">Processing...</div>
+        <button id="askButton" class="primary-button">Ask</button>
+        <div id="loading" class="loading hidden">
+          <div class="loading-spinner"></div>
+          <span>Processing your request...</span>
+        </div>
         <div id="answer" class="answer hidden"></div>
       </div>
     </div>
@@ -49,99 +53,203 @@ function createPopup() {
       align-items: center;
       background: rgba(0, 0, 0, 0.5);
       z-index: 2147483647;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, sans-serif;
     }
     #browse-with-ai-popup {
       background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
       max-width: 500px;
       width: 90%;
-      max-height: 90vh;
+      max-height: 85vh;
       overflow-y: auto;
+      position: relative;
+      box-sizing: border-box;
     }
     .browse-with-ai-container {
       display: flex;
       flex-direction: column;
-      gap: 15px;
+      gap: 20px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .browse-with-ai-content {
+      width: 100%;
+      box-sizing: border-box;
     }
     .browse-with-ai-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 4px;
+      width: 100%;
     }
     .browse-with-ai-header h3 {
       margin: 0;
-      color: #333;
+      color: #1a1a1a;
+      font-size: 18px;
+      font-weight: 600;
     }
     .close-button {
       background: none;
       border: none;
       font-size: 24px;
       cursor: pointer;
-      padding: 0 5px;
+      padding: 8px;
       color: #666;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s;
+      margin: -8px;
     }
     .close-button:hover {
+      background-color: #f0f0f0;
       color: #333;
     }
     .selected-text-preview {
-      background: #f5f5f5;
-      padding: 10px;
-      border-radius: 4px;
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: 8px;
       font-style: italic;
-      max-height: 100px;
+      max-height: 120px;
       overflow-y: auto;
+      color: #444;
+      border: 1px solid #e0e0e0;
+      font-size: 14px;
+      line-height: 1.5;
+      width: 100%;
+      box-sizing: border-box;
     }
     .form-group {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 8px;
+      width: 100%;
+      box-sizing: border-box;
     }
-    .form-group label {
+    .checkbox-group {
+      margin: -4px 0;
+    }
+    .checkbox-label {
       display: flex;
       align-items: center;
       gap: 8px;
-      color: #333;
+      color: #444;
+      cursor: pointer;
+      padding: 4px 0;
+    }
+    .checkbox-text {
+      font-size: 14px;
+    }
+    input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      border: 2px solid #0066cc;
+      border-radius: 4px;
+      cursor: pointer;
     }
     textarea {
       width: 100%;
-      min-height: 100px;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
+      min-height: 120px;
+      padding: 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
       resize: vertical;
       font-family: inherit;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+      transition: border-color 0.2s;
+      background: white;
+      box-sizing: border-box;
     }
-    button {
-      padding: 8px 16px;
+    textarea:focus {
+      outline: none;
+      border-color: #0066cc;
+      box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.1);
+    }
+    textarea::placeholder {
+      color: #888;
+    }
+    .primary-button {
+      padding: 12px 24px;
       background: #0066cc;
       color: white;
       border: none;
-      border-radius: 4px;
+      border-radius: 8px;
       cursor: pointer;
       font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      align-self: flex-start;
     }
-    button:hover {
+    .primary-button:hover {
       background: #0052a3;
     }
-    button:disabled {
-      background: #ccc;
+    .primary-button:disabled {
+      background: #cccccc;
       cursor: not-allowed;
     }
     .loading {
-      text-align: center;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       color: #666;
+      font-size: 14px;
+      width: 100%;
+    }
+    .loading-spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0066cc;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
     .answer {
-      margin-top: 15px;
-      padding: 10px;
-      background: #f5f5f5;
-      border-radius: 4px;
+      margin-top: 4px;
+      padding: 16px;
+      background: #f8f9fa;
+      border-radius: 8px;
       white-space: pre-wrap;
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+      border: 1px solid #e0e0e0;
+      width: 100%;
+      box-sizing: border-box;
     }
     .hidden {
       display: none;
+    }
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #999;
+    }
+    * {
+      box-sizing: border-box;
     }
   `;
   shadow.appendChild(style);
@@ -174,9 +282,16 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // Handle click outside popup
     container.addEventListener('click', (e) => {
+      // Only close if clicking the overlay background (the container itself)
+      // and not any of its children
       if (e.target === container) {
         container.remove();
       }
+    });
+
+    // Prevent clicks inside the popup from bubbling up
+    popup.addEventListener('click', (e) => {
+      e.stopPropagation();
     });
 
     // Handle ask button
