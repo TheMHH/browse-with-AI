@@ -281,25 +281,7 @@ function createPopup() {
     }
 
     .message.user {
-      flex-direction: row-reverse;
-    }
-
-    .message-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: var(--primary-color);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .message.user .message-avatar {
-      background: var(--text-muted);
+      justify-content: flex-end;
     }
 
     .message-content {
@@ -313,10 +295,17 @@ function createPopup() {
       border: 1px solid var(--border-color);
     }
 
+    /* AI message specific styles */
+    .message:not(.user) .message-content {
+      border-top-left-radius: 4px;
+    }
+
+    /* User message specific styles */
     .message.user .message-content {
       background: var(--primary-color);
       color: white;
       border: none;
+      border-top-right-radius: 4px;
     }
 
     .input-section {
@@ -432,6 +421,33 @@ function createPopup() {
 
     * {
       box-sizing: border-box;
+    }
+
+    /* Add AI provider icons */
+    .ai-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+      overflow: hidden;
+      padding: 6px;
+      background: var(--primary-color);
+    }
+
+    .ai-avatar svg {
+      width: 20px;
+      height: 20px;
+      display: block;
+    }
+
+    .user-avatar {
+      background: var(--text-muted);
     }
   `;
   shadow.appendChild(style);
@@ -575,6 +591,30 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       container.remove();
     });
 
+    // Add AI provider icons
+    const aiProviderIcons = {
+      'openai': '<svg width="100%" height="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M22.282 9.821a5.985 5.985 0 0 0-.516-4.91a6.046 6.046 0 0 0-6.51-2.9A6.065 6.065 0 0 0 4.981 4.18a5.985 5.985 0 0 0-3.998 2.9a6.046 6.046 0 0 0 .743 7.097a5.98 5.98 0 0 0 .51 4.911a6.051 6.051 0 0 0 6.515 2.9A5.985 5.985 0 0 0 13.26 24a6.056 6.056 0 0 0 5.772-4.206a5.99 5.99 0 0 0 3.997-2.9a6.056 6.056 0 0 0-.747-7.073zM13.26 22.43a4.476 4.476 0 0 1-2.876-1.04l.141-.081l4.779-2.758a.795.795 0 0 0 .392-.681v-6.737l2.02 1.168a.071.071 0 0 1 .038.052v5.583a4.504 4.504 0 0 1-4.494 4.494zM3.6 18.304a4.47 4.47 0 0 1-.535-3.014l.142.085l4.783 2.759a.78.78 0 0 0 .78 0l5.843-3.369v2.332a.074.074 0 0 1-.028.057l-4.832 2.795a4.504 4.504 0 0 1-6.153-1.645zm-.856-8.246a4.476 4.476 0 0 1 2.346-1.973l-.004.162l.003 5.523a.775.775 0 0 0 .391.676l5.843 3.37-2.02 1.168a.075.075 0 0 1-.057.01l-4.837-2.794a4.504 4.504 0 0 1-1.665-6.142zm16.06 3.798l-5.843-3.37l2.02-1.167a.071.071 0 0 1 .057-.01l4.837 2.794a4.494 4.494 0 0 1-.62 8.115V14.4a.775.775 0 0 0-.391-.676zm2.049-3.03l-.142-.085l-4.779-2.758a.78.78 0 0 0-.78 0L9.31 11.35V9.018a.074.074 0 0 1 .028-.057l4.837-2.794a4.504 4.504 0 0 1 6.688 4.66zM8.519 15.33l-2.02-1.167a.075.075 0 0 1-.038-.052V8.528a4.504 4.504 0 0 1 7.37-3.453l-.142.08l-4.779 2.759a.795.795 0 0 0-.391.681zm1.01-3.087l2.602-1.5l2.602 1.5v2.999l-2.602 1.5l-2.602-1.5z"/></svg>',
+      'anthropic': '<svg width="100%" height="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2L2 19.778h20L12 2zm0 4l7.778 13.778H4.222L12 6z"/></svg>',
+      'gemini': '<svg width="100%" height="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm4.5 14c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5zm-3-4c-.83 0-1.5-.67-1.5-1.5S12.67 9 13.5 9s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5zm-3 4c-.83 0-1.5-.67-1.5-1.5S9.67 13 10.5 13s1.5.67 1.5 1.5s-.67 1.5-1.5 1.5z"/></svg>',
+      'default': '<svg width="100%" height="100%" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10s10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8s8 3.59 8 8s-3.59 8-8 8zm-1-14h2v7h-2zm0 8h2v2h-2z"/></svg>'
+    };
+
+    // Function to create message HTML
+    function createMessageHTML(content, isUser = false, aiProvider = 'default') {
+      if (isUser) {
+        return `
+          <div class="message-content">${content}</div>
+        `;
+      } else {
+        return `
+          <div class="message-avatar ai-avatar">
+            ${aiProviderIcons[aiProvider] || aiProviderIcons.default}
+          </div>
+          <div class="message-content">${content}</div>
+        `;
+      }
+    }
+
     // Handle ask button
     askButton.addEventListener('click', async () => {
       const question = questionInput.value.trim();
@@ -584,10 +624,7 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const messagesContainer = popup.querySelector('#messages');
       const userMessage = document.createElement('div');
       userMessage.className = 'message user';
-      userMessage.innerHTML = `
-        <div class="message-content">${question}</div>
-        <div class="message-avatar">U</div>
-      `;
+      userMessage.innerHTML = createMessageHTML(question, true);
       messagesContainer.appendChild(userMessage);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
@@ -614,23 +651,21 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
           pageContent
         });
 
-        // Add AI response message
+        // Add AI response message with the correct provider icon
         const aiMessage = document.createElement('div');
         aiMessage.className = 'message';
-        aiMessage.innerHTML = `
-          <div class="message-avatar">AI</div>
-          <div class="message-content">${response.error || response.answer}</div>
-        `;
+        aiMessage.innerHTML = createMessageHTML(
+          response.error || response.answer,
+          false,
+          response.provider || 'default'
+        );
         messagesContainer.appendChild(aiMessage);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } catch (error) {
         // Add error message
         const errorMessage = document.createElement('div');
         errorMessage.className = 'message';
-        errorMessage.innerHTML = `
-          <div class="message-avatar">AI</div>
-          <div class="message-content">Error: ${error.message}</div>
-        `;
+        errorMessage.innerHTML = createMessageHTML(`Error: ${error.message}`, false, 'default');
         messagesContainer.appendChild(errorMessage);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } finally {
