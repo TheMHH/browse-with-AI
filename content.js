@@ -24,22 +24,30 @@ function createPopup() {
         <button class="close-button" aria-label="Close">&times;</button>
       </div>
       <div class="browse-with-ai-content">
-        <div class="selected-text-preview"></div>
-        <div class="form-group checkbox-group">
-          <label class="checkbox-label">
-            <input type="checkbox" id="includeFullPage">
-            <span class="checkbox-text">Include full page context</span>
-          </label>
+        <div class="chat-container">
+          <div class="context-section">
+            <div class="selected-text-preview"></div>
+            <label class="context-toggle">
+              <input type="checkbox" id="includeFullPage">
+              <span class="toggle-text">Include page context</span>
+            </label>
+          </div>
+          <div class="messages-container" id="messages">
+            <!-- Messages will be added here dynamically -->
+          </div>
+          <div class="input-section">
+            <textarea id="question" placeholder="Ask a question about the selected text..."></textarea>
+            <button id="askButton" class="primary-button">
+              <svg class="send-icon" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor" d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </div>
         </div>
-        <div class="form-group">
-          <textarea id="question" placeholder="Ask a question about the selected text..."></textarea>
-        </div>
-        <button id="askButton" class="primary-button">Ask</button>
         <div id="loading" class="loading hidden">
           <div class="loading-spinner"></div>
           <span>Processing your request...</span>
         </div>
-        <div id="answer" class="answer hidden"></div>
       </div>
     </div>
   `;
@@ -136,6 +144,9 @@ function createPopup() {
     .browse-with-ai-content {
       width: 100%;
       box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
     }
 
     .browse-with-ai-header {
@@ -208,102 +219,164 @@ function createPopup() {
       color: var(--text-primary);
     }
 
-    .selected-text-preview {
-      background: var(--bg-secondary);
-      padding: 16px;
-      border-radius: 8px;
-      font-style: italic;
-      max-height: 120px;
-      overflow-y: auto;
-      color: var(--text-secondary);
-      border: 1px solid var(--border-color);
-      font-size: 14px;
-      line-height: 1.5;
-      width: 100%;
-      box-sizing: border-box;
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      height: 100%;
     }
 
-    .form-group {
+    .context-section {
       display: flex;
       flex-direction: column;
       gap: 8px;
-      width: 100%;
-      box-sizing: border-box;
+      padding: 16px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
     }
 
-    .checkbox-group {
-      margin: -4px 0;
-    }
-
-    .checkbox-label {
+    .context-toggle {
       display: flex;
       align-items: center;
       gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-text {
       color: var(--text-secondary);
-      cursor: pointer;
-      padding: 4px 0;
+      font-size: 13px;
     }
 
-    .checkbox-text {
+    .selected-text-preview {
+      font-style: italic;
+      color: var(--text-secondary);
       font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 4px;
     }
 
-    input[type="checkbox"] {
-      width: 16px;
-      height: 16px;
-      border: 2px solid var(--primary-color);
-      border-radius: 4px;
-      cursor: pointer;
-      background-color: var(--bg-primary);
+    .messages-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .message {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+      background: var(--text-muted);
+    }
+
+    .message-content {
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 80%;
+      border: 1px solid var(--border-color);
+    }
+
+    .message.user .message-content {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+    }
+
+    .input-section {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 12px;
     }
 
     textarea {
-      width: 100%;
-      min-height: 120px;
-      padding: 12px;
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      resize: vertical;
+      flex-grow: 1;
+      min-height: 24px;
+      max-height: 120px;
+      padding: 0;
+      border: none;
+      border-radius: 0;
+      resize: none;
       font-family: inherit;
       font-size: 14px;
       line-height: 1.5;
       color: var(--text-primary);
-      background: var(--bg-primary);
-      transition: border-color 0.2s;
-      box-sizing: border-box;
+      background: transparent;
+      margin: 0;
     }
 
     textarea:focus {
       outline: none;
-      border-color: var(--primary-color);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-
-    textarea::placeholder {
-      color: var(--text-muted);
+      border: none;
+      box-shadow: none;
     }
 
     .primary-button {
-      padding: 12px 24px;
+      padding: 8px;
       background: var(--primary-color);
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      font-family: inherit;
-      font-size: 14px;
-      font-weight: 600;
-      transition: background-color 0.2s;
-      align-self: flex-start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      flex-shrink: 0;
     }
 
     .primary-button:hover {
       background: var(--primary-hover);
+      transform: scale(1.05);
     }
 
     .primary-button:disabled {
       background: var(--disabled-bg);
       cursor: not-allowed;
+      transform: none;
+    }
+
+    .send-icon {
+      width: 20px;
+      height: 20px;
     }
 
     .loading {
@@ -327,20 +400,6 @@ function createPopup() {
     @keyframes spin {
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
-    }
-
-    .answer {
-      margin-top: 4px;
-      padding: 16px;
-      background: var(--bg-secondary);
-      border-radius: 8px;
-      white-space: pre-wrap;
-      color: var(--text-primary);
-      font-size: 14px;
-      line-height: 1.6;
-      border: 1px solid var(--border-color);
-      width: 100%;
-      box-sizing: border-box;
     }
 
     .hidden {
@@ -501,7 +560,6 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const questionInput = popup.querySelector('#question');
     const askButton = popup.querySelector('#askButton');
     const loadingIndicator = popup.querySelector('#loading');
-    const answerDiv = popup.querySelector('#answer');
     const closeButton = popup.querySelector('.close-button');
     const includeFullPageCheckbox = popup.querySelector('#includeFullPage');
 
@@ -518,9 +576,22 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
       const question = questionInput.value.trim();
       if (!question) return;
 
+      // Add user message
+      const messagesContainer = popup.querySelector('#messages');
+      const userMessage = document.createElement('div');
+      userMessage.className = 'message user';
+      userMessage.innerHTML = `
+        <div class="message-content">${question}</div>
+        <div class="message-avatar">U</div>
+      `;
+      messagesContainer.appendChild(userMessage);
+      messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Clear input
+      questionInput.value = '';
+      
       // Show loading state
       loadingIndicator.classList.remove('hidden');
-      answerDiv.classList.add('hidden');
       askButton.disabled = true;
 
       try {
@@ -539,18 +610,44 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
           pageContent
         });
 
-        if (response.error) {
-          answerDiv.textContent = `Error: ${response.error}`;
-        } else {
-          answerDiv.textContent = response.answer;
-        }
+        // Add AI response message
+        const aiMessage = document.createElement('div');
+        aiMessage.className = 'message';
+        aiMessage.innerHTML = `
+          <div class="message-avatar">AI</div>
+          <div class="message-content">${response.error || response.answer}</div>
+        `;
+        messagesContainer.appendChild(aiMessage);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } catch (error) {
-        answerDiv.textContent = `Error: ${error.message}`;
+        // Add error message
+        const errorMessage = document.createElement('div');
+        errorMessage.className = 'message';
+        errorMessage.innerHTML = `
+          <div class="message-avatar">AI</div>
+          <div class="message-content">Error: ${error.message}</div>
+        `;
+        messagesContainer.appendChild(errorMessage);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
       } finally {
         loadingIndicator.classList.add('hidden');
-        answerDiv.classList.remove('hidden');
         askButton.disabled = false;
+        questionInput.focus();
       }
+    });
+
+    // Handle Enter key in textarea
+    questionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        askButton.click();
+      }
+    });
+
+    // Auto-resize textarea
+    questionInput.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
     });
   }
 
