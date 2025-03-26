@@ -1,61 +1,104 @@
 # Browse with AI - Firefox Extension
 
-A Firefox extension that allows you to ask questions about selected text on any webpage using various AI language models.
+A Firefox extension that allows you to select text on any webpage and ask questions about it using various AI providers. The extension provides a modern, user-friendly interface with support for multiple AI models and a chat-like experience.
 
 ## Features
 
-- Select text on any webpage and right-click to ask questions about it
-- Support for multiple AI providers (OpenAI, DeepSeek, Google Gemini)
-- Option to include full page context for better answers
-- Clean and intuitive popup interface
-- Secure API key storage
+- **Text Selection**: Select any text on a webpage to analyze
+- **Multiple AI Providers**: Support for various AI providers including:
+  - OpenAI (GPT-3.5, GPT-4)
+  - Anthropic (Claude 2, Claude 3)
+  - Google (Gemini)
+  - Meta (Llama 2)
+  - Mistral
+  - Perplexity
+  - Ollama
+  - Custom API endpoints
+
+- **Modern UI/UX**:
+  - Draggable popup window with visual drag handle
+  - Light and dark theme support
+  - Smooth animations and transitions
+  - Focus/blur states for better multitasking
+  - Chat-like interface with AI provider logos
+  - Context-aware message bubbles
+  - Responsive design
+
+- **Smart Features**:
+  - Context preservation
+  - Conversation history
+  - Position memory
+  - Automatic theme detection
+  - Smooth scrolling
+  - Loading states and error handling
 
 ## Installation
 
-1. Clone this repository or download the source code
-2. Open Firefox and navigate to `about:debugging`
+1. Clone this repository
+2. Open Firefox and go to `about:debugging`
 3. Click "This Firefox" on the left sidebar
 4. Click "Load Temporary Add-on"
-5. Navigate to the extension directory and select any file (e.g., `manifest.json`)
-
-## Configuration
-
-1. Click the extension icon in your Firefox toolbar
-2. Select your preferred AI provider from the dropdown
-3. Enter your API key for the selected provider
-4. Optionally enable "Include full page context" by default
-5. Click "Save Settings"
+5. Navigate to the extension directory and select `manifest.json`
 
 ## Usage
 
-1. Select any text on a webpage by dragging your mouse over it
-2. Right-click the selected text
-3. Click "Ask about this text" in the context menu
-4. Type your question in the popup that appears
-5. Optionally toggle "Include full page context" if you want to include the full webpage content
-6. Click "Ask" to get your answer
+1. Select any text on a webpage
+2. Right-click and choose "Ask AI about selection"
+3. The popup will appear in the bottom right corner
+4. Type your question and press Enter
+5. View the AI's response in a chat-like interface
+6. Continue the conversation or close the popup
 
-## Supported AI Providers
+## Configuration
 
-- OpenAI (GPT-3.5)
-- DeepSeek
-- Google Gemini
+The extension supports configuration through the browser's storage:
 
-## Privacy & Security
-
-- API keys are stored locally in your browser
-- No data is sent to any servers except the selected AI provider
-- Full page context is optional and can be toggled per request
+- `apiKey`: Your API key for the selected provider
+- `model`: The AI model to use
+- `provider`: The AI provider to use
+- `popupX` and `popupY`: Last position of the popup window
 
 ## Development
 
-The extension is built using vanilla JavaScript and uses the Firefox WebExtensions API. The main components are:
+### Project Structure
+
+```
+browse_with_ai/
+├── manifest.json
+├── background.js
+├── content.js
+├── popup.html
+├── popup.js
+├── icons/
+│   ├── icon-48.png
+│   ├── icon-96.png
+│   └── icon-128.png
+└── README.md
+```
+
+### Key Components
 
 - `manifest.json`: Extension configuration
-- `background.js`: Handles context menu and API interactions
-- `content.js`: Manages the popup UI and page content extraction
-- `popup.html/js`: Settings configuration interface
+- `background.js`: Handles context menu and messaging
+- `content.js`: Manages popup UI and interactions
+- `popup.html/js`: Settings interface
+- `icons/`: Extension icons
+
+### Building
+
+1. Make your changes
+2. Test in Firefox using `about:debugging`
+3. Package for distribution (instructions to be added)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
 
-MIT License - feel free to use and modify as needed. 
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Icons from [Phosphor Icons](https://phosphoricons.com/)
+- Inspired by various AI-powered browser extensions 
