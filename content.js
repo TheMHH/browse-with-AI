@@ -648,17 +648,25 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     // Handle ask button
+    let conversationHistory = [];
+
     askButton.addEventListener('click', async () => {
       const question = questionInput.value.trim();
       if (!question) return;
 
-      // Add user message
+      // Add user message to UI
       const messagesContainer = popup.querySelector('#messages');
       const userMessage = document.createElement('div');
       userMessage.className = 'message user';
       userMessage.innerHTML = createMessageHTML(question, true);
       messagesContainer.appendChild(userMessage);
       messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+      // Add user message to history
+      conversationHistory.push({
+        role: "user",
+        content: question
+      });
 
       // Clear input
       questionInput.value = '';
@@ -675,19 +683,30 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
           pageContent = response.pageContent;
         }
 
-        // Send question to background script
+        // Send question to background script with conversation history
         const response = await browser.runtime.sendMessage({
           action: "askLLM",
           selectedText: message.selectedText,
           question,
-          pageContent
+          pageContent,
+          messages: conversationHistory
+        });
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        // Add AI response to conversation history
+        conversationHistory.push({
+          role: "assistant",
+          content: response.answer
         });
 
         // Add AI response message with the correct provider icon
         const aiMessage = document.createElement('div');
         aiMessage.className = 'message';
         aiMessage.innerHTML = createMessageHTML(
-          response.error || response.answer,
+          response.answer,
           false,
           response.provider || 'default'
         );

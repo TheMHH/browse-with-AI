@@ -41,12 +41,15 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
         if (settings.includeFullPage && message.pageContent) {
           prompt += `\nFull page: "${message.pageContent.substring(0, 2000)}..."`;
         }
-        prompt += `\nQuestion: "${message.question}"\nAnswer concisely.`;
+        prompt += `\nQuestion: "${message.question}"`;
 
         // Call appropriate API based on provider
-        callLLMAPI(settings.apiProvider, settings.apiKey, prompt)
+        callLLMAPI(settings.apiProvider, settings.apiKey, prompt, message.messages || [])
           .then(response => {
-            sendResponse({ answer: response });
+            sendResponse({ 
+              answer: response.content,
+              provider: settings.apiProvider
+            });
           })
           .catch(error => {
             sendResponse({ error: error.message });
@@ -56,10 +59,10 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-async function callLLMAPI(provider, apiKey, prompt) {
+async function callLLMAPI(provider, apiKey, prompt, messages = []) {
   const endpoints = {
     'openai': 'https://api.openai.com/v1/chat/completions',
-    'deepseek': 'https://api.deepseek.com/v1/chat/completions',
+    'anthropic': 'https://api.anthropic.com/v1/messages',
     'gemini': 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent'
   };
 
@@ -68,23 +71,45 @@ async function callLLMAPI(provider, apiKey, prompt) {
     'Authorization': `Bearer ${apiKey}`
   };
 
+  // Default system message for web browsing context
+  const systemMessage = {
+    role: "system",
+    content: "You are an AI assistant embedded in a web browser extension. Your role is to help users understand and analyze content from web pages. Keep your responses clear, concise, and directly relevant to the user's questions about the selected text. If you need more context, say so. Always maintain a helpful and professional tone."
+  };
+
   let body;
   switch (provider) {
     case 'openai':
       body = {
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }]
+        messages: [
+          systemMessage,
+          ...messages,
+          { role: "user", content: prompt }
+        ]
       };
       break;
-    case 'deepseek':
+    case 'anthropic':
       body = {
-        model: "deepseek-chat",
-        messages: [{ role: "user", content: prompt }]
+        model: "claude-3-opus-20240229",
+        messages: [
+          { role: "system", content: systemMessage.content },
+          ...messages,
+          { role: "user", content: prompt }
+        ],
+        max_tokens: 1024
       };
       break;
     case 'gemini':
       body = {
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [
+          { role: "system", parts: [{ text: systemMessage.content }] },
+          ...messages.map(msg => ({
+            role: msg.role,
+            parts: [{ text: msg.content }]
+          })),
+          { role: "user", parts: [{ text: prompt }] }
+        ]
       };
       break;
     default:
@@ -103,14 +128,23 @@ async function callLLMAPI(provider, apiKey, prompt) {
 
   const data = await response.json();
   
+  let content;
   switch (provider) {
     case 'openai':
-      return data.choices[0].message.content;
-    case 'deepseek':
-      return data.choices[0].message.content;
+      content = data.choices[0].message.content;
+      break;
+    case 'anthropic':
+      content = data.content[0].text;
+      break;
     case 'gemini':
-      return data.candidates[0].content.parts[0].text;
+      content = data.candidates[0].content.parts[0].text;
+      break;
     default:
       throw new Error("Unsupported API provider");
   }
+
+  return {
+    content,
+    provider
+  };
 } 
