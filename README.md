@@ -32,6 +32,12 @@ A Firefox extension that allows you to select text on any webpage and ask questi
   - Smooth scrolling
   - Loading states and error handling
 
+## Example
+
+![Browse with AI in action](docs/example.png)
+
+The extension allows you to select text from any webpage (like documentation shown above) and ask questions about it. The popup interface appears with your selected text and provides an intuitive chat interface to interact with various AI models.
+
 ## Installation
 
 1. Clone this repository
