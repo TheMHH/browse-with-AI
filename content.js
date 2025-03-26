@@ -74,6 +74,11 @@ function createPopup() {
       height: 100%;
       background: rgba(0, 0, 0, 0.5);
       z-index: 1;
+      transition: background-color 0.3s ease;
+    }
+
+    .overlay.blurred {
+      background: rgba(0, 0, 0, 0.1);
     }
 
     /* Light theme (default) */
@@ -88,7 +93,7 @@ function createPopup() {
       width: 90%;
       height: 600px;
       box-sizing: border-box;
-      transition: none;
+      transition: all 0.3s ease;
       z-index: 2;
       display: flex;
       --bg-primary: #ffffff;
@@ -107,6 +112,12 @@ function createPopup() {
       --disabled-bg: #cccccc;
       --spinner-bg: #f3f3f3;
       --hover-bg: #f0f0f0;
+    }
+
+    #browse-with-ai-popup.blurred {
+      opacity: 0.7;
+      filter: grayscale(0.5);
+      background: var(--bg-secondary);
     }
 
     /* Dark theme */
@@ -130,6 +141,12 @@ function createPopup() {
         --hover-bg: #2d2d2d;
 
         box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+      }
+
+      #browse-with-ai-popup.blurred {
+        opacity: 0.7;
+        filter: grayscale(0.5);
+        background: var(--bg-secondary);
       }
     }
 
@@ -565,6 +582,19 @@ function createPopup() {
 
   // Handle click outside popup
   overlay.addEventListener('click', () => {
+    popup.classList.add('blurred');
+    overlay.classList.add('blurred');
+  });
+
+  // Handle click on popup to restore focus
+  popup.addEventListener('click', () => {
+    popup.classList.remove('blurred');
+    overlay.classList.remove('blurred');
+  });
+
+  // Handle close button
+  const closeButton = popup.querySelector('.close-button');
+  closeButton.addEventListener('click', () => {
     container.remove();
   });
 
