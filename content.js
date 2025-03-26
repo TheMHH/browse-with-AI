@@ -234,6 +234,7 @@ function createPopup() {
       background: var(--bg-secondary);
       border-radius: 8px;
       border: 1px solid var(--border-color);
+      margin-bottom: 16px; /* Add spacing between context and messages */
     }
 
     .context-toggle {
