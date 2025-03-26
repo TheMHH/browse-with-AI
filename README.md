@@ -9,11 +9,6 @@ A Firefox extension that allows you to select text on any webpage and ask questi
   - OpenAI (GPT-3.5, GPT-4)
   - Anthropic (Claude 2, Claude 3)
   - Google (Gemini)
-  - Meta (Llama 2)
-  - Mistral
-  - Perplexity
-  - Ollama
-  - Custom API endpoints
 
 - **Modern UI/UX**:
   - Draggable popup window with visual drag handle
