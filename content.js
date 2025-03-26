@@ -469,9 +469,10 @@ function createPopup() {
       yOffset = result.popupY;
       setTranslate(xOffset, yOffset, popup);
     } else {
-      // Center the popup if no position is saved
-      xOffset = 0;
-      yOffset = 0;
+      // Position the popup at the bottom right corner
+      const rect = popup.getBoundingClientRect();
+      xOffset = window.innerWidth - rect.width - 24; // 24px padding from right
+      yOffset = window.innerHeight - rect.height - 24; // 24px padding from bottom
       setTranslate(xOffset, yOffset, popup);
     }
   });
