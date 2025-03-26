@@ -86,11 +86,11 @@ function createPopup() {
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
       max-width: 500px;
       width: 90%;
-      max-height: 85vh;
-      overflow-y: auto;
+      height: 600px;
       box-sizing: border-box;
       transition: none;
       z-index: 2;
+      display: flex;
       --bg-primary: #ffffff;
       --bg-secondary: #f8f9fa;
       --text-primary: #1a1a1a;
@@ -136,17 +136,16 @@ function createPopup() {
     .browse-with-ai-container {
       display: flex;
       flex-direction: column;
-      gap: 20px;
       width: 100%;
+      height: 100%;
       box-sizing: border-box;
     }
 
     .browse-with-ai-content {
-      width: 100%;
-      box-sizing: border-box;
+      flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      min-height: 0; /* Important for nested flexbox scrolling */
     }
 
     .browse-with-ai-header {
@@ -222,11 +221,12 @@ function createPopup() {
     .chat-container {
       display: flex;
       flex-direction: column;
-      gap: 16px;
-      height: 100%;
+      flex: 1;
+      min-height: 0; /* Important for nested flexbox scrolling */
     }
 
     .context-section {
+      flex-shrink: 0; /* Prevent context section from shrinking */
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -258,12 +258,14 @@ function createPopup() {
     }
 
     .messages-container {
+      flex: 1;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      max-height: 400px;
       overflow-y: auto;
       padding-right: 8px;
+      padding-bottom: 16px;
+      min-height: 200px;
     }
 
     .message {
@@ -318,6 +320,8 @@ function createPopup() {
     }
 
     .input-section {
+      flex-shrink: 0; /* Prevent input section from shrinking */
+      margin-top: 16px;
       display: flex;
       gap: 12px;
       align-items: flex-end;
